@@ -1,0 +1,16 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/ShopingCart/.vs
+/ShopingCart/bin/Debug
+/ShopingCart/data/.minio.sys
+/ShopingCart/minio-data/.minio.sys
+/ShopingCart/obj
+/ShopingCart/ShopingCart/.config
+/ShopingCart/ShopingCart/bin/Debug/net8.0
+/ShopingCart/ShopingCart/obj
+/ShopingCart/ShopingCartTests/bin/Debug/net8.0
+/ShopingCart/ShopingCartTests/obj
+/ShopingCart/sql-server-data

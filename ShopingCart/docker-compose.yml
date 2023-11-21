@@ -1,0 +1,45 @@
+version: '3.4'
+
+services:
+  shopingcart:
+    container_name: shopingcart-container
+    image: ${DOCKER_REGISTRY-}shopingcart
+    build:
+      context: .
+      dockerfile: ShopingCart/Dockerfile
+    depends_on:
+      - sql-server
+
+  sql-server:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sql-server-container
+    environment:
+      SA_PASSWORD: YourPassword123!
+      ACCEPT_EULA: Y
+    ports:
+      - "1433:1433"
+    networks:
+      - sql-network
+      - default
+
+  minio:
+    image: minio/minio
+    container_name: minio-container
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_storage:/data
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: YourPassword123!
+    command: server --console-address ":9001" /data
+
+volumes:
+  minio_storage: {}
+
+networks:
+  sql-network:
+    driver: bridge
+
+      
