@@ -7,14 +7,13 @@ namespace ShopingCart.Models.API
         public Guid Id { get; set; }
         public List<ProductsDetails> Products { get; set; }
         public string Customer { get; set; }
-        public decimal TotalPrice { get; set; }
+        public decimal TotalPrice { get => Products.Any() ? Products.Sum(price => price.Price) : 0; }
 
         public CartDetails(Cart cart, List<ProductsDetails> products)
         {
             Id = cart.Id;
             Products = products;
             Customer = cart.Customer;
-            TotalPrice = cart.TotalPrice;
         }
 
 

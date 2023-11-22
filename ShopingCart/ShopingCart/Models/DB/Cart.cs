@@ -14,8 +14,5 @@ namespace ShopingCart.Models.DB
         [Required(ErrorMessage = "Customer is required")]
         [EmailAddress(ErrorMessage = "Invalid email address.")]
         public string Customer { get; set; }
-
-        [Range(0.01, double.MaxValue, ErrorMessage = "TotalPrice must be greater than 0")]
-        public decimal TotalPrice { get; set; }
     }
 }

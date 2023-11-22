@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShopingCart.Repositories;
 
@@ -11,9 +12,11 @@ using ShopingCart.Repositories;
 namespace ShopingCart.Migrations
 {
     [DbContext(typeof(ShopingCartContext))]
-    partial class ShopingCartContextModelSnapshot : ModelSnapshot
+    [Migration("20231122073716_Removed-Total-From-Cart")]
+    partial class RemovedTotalFromCart
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
