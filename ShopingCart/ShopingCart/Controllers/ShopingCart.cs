@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using ShopingCart.Contracts.Repositories;
 using ShopingCart.Contracts.Workers;
 using ShopingCart.Models.API;
 using ShopingCart.Models.DB;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -16,13 +19,26 @@ namespace ShopingCart.Controllers
     {
         private readonly ICartLogic _cartLogic = cartLogic;
 
-        
+        private string GetUserEmail()
+        {
+            var authorizationHeader = Request.Headers["Authorization"].ToString();
+
+            var token = authorizationHeader.Substring("Bearer ".Length);
+
+            var TokenHandler = new JwtSecurityTokenHandler();
+
+            var jwt = TokenHandler.ReadJwtToken(token);
+
+            return jwt.Payload.Claims.FirstOrDefault(i => i.Type == "email").Value;
+
+
+        }
 
         [HttpGet("{id}")]
         public ActionResult<CartDetails> GetCart(Guid id)
         {
             var cartDetails = _cartLogic.GetCartDetails(id);
-            if (cartDetails == null)
+            if (cartDetails == null || cartDetails.Customer != GetUserEmail())
             {
                 return NotFound();
             }
@@ -32,7 +48,9 @@ namespace ShopingCart.Controllers
         [HttpGet]
         public ActionResult<List<CartDetails>> GetCarts()
         {
-            var cartDetails = _cartLogic.GetCartDetails();
+            var customerEmail = GetUserEmail();
+
+            var cartDetails = _cartLogic.GetCartDetails().Where(cart => cart.Customer == customerEmail).ToList();
             if (cartDetails == null)
             {
                 return NotFound();
@@ -43,6 +61,11 @@ namespace ShopingCart.Controllers
         [HttpPost]
         public ActionResult<CartDetails> AddCart([FromBody] Cart cart)
         {
+            if(cart.Customer != GetUserEmail())
+            {
+                return BadRequest("Invalid Customer");
+            }
+
             var result = _cartLogic.AddDBCart(cart);
             if (result == 0)
             {
@@ -59,6 +82,11 @@ namespace ShopingCart.Controllers
                 return BadRequest("Invalid ID");
             }
 
+            if (cart.Customer != GetUserEmail())
+            {
+                return BadRequest("Invalid Customer");
+            }
+
             var result = _cartLogic.UpdateDBCart(cart);
             if (result == 0)
             {
@@ -70,6 +98,13 @@ namespace ShopingCart.Controllers
         [HttpDelete("{id}")]
         public ActionResult DeleteCart(Guid id)
         {
+            var cart = _cartLogic.GetCartDetails(id);
+
+            if (cart.Customer != GetUserEmail())
+            {
+                return BadRequest("Invalid Customer");
+            }
+
             if (id == Guid.Empty)
             {
                 return BadRequest("Invalid cart ID");

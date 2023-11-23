@@ -5,6 +5,9 @@
       "commandVersion": "1.0",
       "serviceActions": {
         "shopingcart": "StartDebugging"
+      },
+      "environmentVariables": {
+        "SWAGGER_REDIRECT_URL": "http://localhost:{ServicePort}/swagger/oauth2-redirect.html"
       }
     }
   }

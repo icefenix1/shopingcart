@@ -20,7 +20,7 @@ namespace ShopingCart.Controllers
         [HttpGet]
         public ActionResult<List<ProductsDetails>> Get()
         {
-            //var userName = User.Identity.Name;
+            
             var products = _product.GetProductsDetails();
             if (products is null)
             {

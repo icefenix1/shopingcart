@@ -1,6 +1,21 @@
 version: '3.4'
 
 services:
+  traefik:
+    image: "traefik:v2.5"
+    container_name: traefik-container
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+    ports:
+      - "80:80"
+      - "9090:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - default
+
   shopingcart:
     container_name: shopingcart-container
     image: ${DOCKER_REGISTRY-}shopingcart
@@ -9,6 +24,13 @@ services:
       dockerfile: ShopingCart/Dockerfile
     depends_on:
       - sql-server
+    environment:
+      
+      - SHOPPINGCART_DB_CONNECTION_STRING=jdbc:sqlserver://sql-server-container:1433;databaseName=mydatabase;user=myuser;password=mypassword
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.shopingcart.rule=Host(`cart.localhost`)"
+      - "traefik.http.services.shopingcart.loadbalancer.server.port=61296"
 
   sql-server:
     image: mcr.microsoft.com/mssql/server:2019-latest
@@ -21,6 +43,8 @@ services:
     networks:
       - sql-network
       - default
+    labels:
+      - "traefik.enable=false"
 
   minio:
     image: minio/minio
@@ -34,12 +58,46 @@ services:
       MINIO_ROOT_USER: minio
       MINIO_ROOT_PASSWORD: YourPassword123!
     command: server --console-address ":9001" /data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.minio.rule=Host(`minio.localhost`)"
+      # - "traefik.http.middlewares.minio.addprefix.prefix=/minio"
+      - "traefik.http.services.minio.loadbalancer.server.port=9001"
 
-volumes:
-  minio_storage: {}
+  keycloak:
+    image: jboss/keycloak
+    container_name: keycloak-container
+    environment:
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+      - DB_VENDOR=POSTGRES
+      - DB_ADDR=keycloak-db
+      - DB_DATABASE=keycloak
+      - DB_USER=keycloak
+      - DB_PASSWORD=keycloak
+    ports:
+      - "8080:8080"
+    depends_on:
+      - keycloak-db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.keycloak.rule=Host(`keycloak-container`)"
+      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
+
+
+  keycloak-db:
+    image: postgres
+    container_name: keycloak-db-container
+    environment:
+      - POSTGRES_DB=keycloak
+      - POSTGRES_USER=keycloak
+      - POSTGRES_PASSWORD=keycloak
+    labels:
+      - "traefik.enable=false"
 
 networks:
   sql-network:
     driver: bridge
 
-      
+volumes:
+  minio_storage: {}
